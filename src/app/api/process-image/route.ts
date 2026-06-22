@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     // Call Nano Banana (Gemini image generation)
     console.log('Calling Nano Banana API...');
     const response = await genAI.models.generateContent({
-      model: 'gemini-2.5-flash-image-preview',
+      model: 'gemini-2.5-flash-image',
       contents: [
         {
           parts: [
