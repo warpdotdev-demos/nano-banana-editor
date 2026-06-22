@@ -9,6 +9,14 @@ interface ImageHistoryItem {
   timestamp: number;
 }
 
+// Example edit prompts shown as quick-fill chips below the instructions input
+const EXAMPLE_PROMPTS = [
+  "Make the background more vibrant",
+  "Add dramatic lighting",
+  "Turn this into a YouTube thumbnail",
+  "Make the subject pop",
+];
+
 export default function Home() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -187,6 +195,22 @@ export default function Home() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors"
                     disabled={isSubmitting}
                   />
+                  <div className="mt-3">
+                    <p className="text-xs text-gray-500 mb-2">Try an example prompt:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {EXAMPLE_PROMPTS.map((prompt) => (
+                        <button
+                          key={prompt}
+                          type="button"
+                          onClick={() => setInstructions(prompt)}
+                          disabled={isSubmitting}
+                          className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full border border-gray-300 hover:bg-gray-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {prompt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
                 
                 {submitMessage && (
