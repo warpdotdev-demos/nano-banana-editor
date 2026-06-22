@@ -63,7 +63,7 @@ Assess:
 - Edge cases, migrations, platform differences, or compatibility risks
 - Validation commands used by the repository
 
-Post a brief progress comment if this investigation reveals a materially useful implementation area, for example: "I found the relevant editor state flow in `src/...` and am implementing the change there." Do not post internal reasoning, speculative details, secrets, or raw command output.
+Post a brief progress comment if this investigation reveals a materially useful implementation area, for example: "I found the relevant editor state flow in `src/...` and am implementing the change there." Do not post internal reasoning, speculative details, secrets, or raw command output. Do not describe the implementation as complete until a pull request has been opened and you can include the PR URL.
 
 ### 5. Implement the change
 
@@ -93,27 +93,34 @@ Commit only the intended changes. Use a clear commit message. When committing, i
 
 `Co-Authored-By: Oz <oz-agent@warp.dev>`
 
-Push the branch and open a GitHub pull request against the repository's default branch.
+Push the branch and open a GitHub pull request against the repository's default branch using the authenticated `gh` CLI. Capture the PR URL returned by `gh pr create`; this URL is required before posting final success back to the issue.
 
 The PR description should include:
 
-- Link to the original issue
+- A direct link to the original issue
 - Summary of the change
 - Validation commands run and their results
 - Known limitations, follow-up work, or validation gaps
 
-If the PR closes the issue, use the appropriate closing keyword only when the implementation fully resolves the issue. Otherwise, reference the issue without closing it.
+Associate the PR with the issue in GitHub:
+
+- If the implementation fully resolves the issue, include a closing keyword in the PR body, such as `Closes #123` or `Fixes #123`.
+- If the implementation only partially addresses the issue, include a non-closing reference, such as `Related to #123`, and explain the remaining work.
+
+After creating the PR, verify that you have a real PR URL. If `gh pr create` fails, do not post a success comment. Instead, fix the failure if possible, or post a blocker comment explaining that the implementation branch exists but PR creation failed.
 
 ### 8. Post the PR link and final status to the issue
 
-After opening the PR, post a final comment on the original issue with:
+Only after opening the PR, post a final comment on the original issue with:
 
 - Link to the PR
 - Brief summary of what was implemented
 - Validation performed
 - Any known limitations or reviewer notes
 
-If no PR was created, post why implementation did not proceed and what concrete next step is needed.
+The final issue comment must include the PR URL. A comment that says implementation is complete or that a PR will be opened later is not acceptable.
+
+If no PR was created, post why implementation did not proceed and what concrete next step is needed. Do not describe this as a successful implementation.
 
 ## Guardrails
 
@@ -123,4 +130,5 @@ If no PR was created, post why implementation did not proceed and what concrete 
 - Do not overwrite unrelated labels or metadata.
 - Do not make unrelated code changes.
 - Do not claim validation passed if it was not run or failed.
+- Do not post a final success comment unless a pull request has already been opened and the comment includes the PR URL.
 - Post progress sparingly: always post the implementation-started comment, then post at most two additional progress comments before the final PR link unless blocked or explicitly asked for more updates.
