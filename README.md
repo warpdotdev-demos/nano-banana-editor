@@ -158,6 +158,17 @@ Don't forget to add your `GOOGLE_GENERATIVE_AI_API_KEY` in the Vercel environmen
 
 The app is a standard Next.js application and can be deployed to any platform that supports Node.js.
 
+## 🤖 Automated Issue Workflows
+
+This repository uses [Oz](https://warp.dev/oz) cloud agents to triage and implement GitHub issues automatically. Two GitHub Actions workflows power this:
+
+- **Triage** (`.github/workflows/triage-issues.yml`): When a new issue is opened, an Oz agent reads the issue and codebase, then applies an implementation-readiness label. It follows the skill at `.agents/skills/Triage/SKILL.md`.
+- **Implementation** (`.github/workflows/implement-ready-issues.yml`): When an issue is labeled **Ready to implement**, an Oz agent implements the smallest cohesive change, opens a pull request, and reports progress back on the issue. It follows the skill at `.agents/skills/implementation.md`.
+
+### Setup
+
+Both workflows require a `WARP_API_KEY` repository secret (your Oz API key). Optionally set a `WARP_AGENT_PROFILE` repository variable to pin a specific agent profile.
+
 ## 🤝 Contributing
 
 1. Fork the repository
