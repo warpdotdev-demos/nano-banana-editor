@@ -1,7 +1,7 @@
 name: Implement Ready Issues
 
 # Runs an Oz cloud agent when an issue receives a ready-to-implement label.
-# The agent follows .agents/skills/implementation.md to implement the issue,
+# The agent follows .agents/skills/implementation/SKILL.md to implement the issue,
 # open a pull request, and report progress back to the original issue.
 
 on:
@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Install spec validation skill
+        run: npx skills add warpdotdev/common-skills --skill validate-changes-match-specs --agent warp --yes
 
       - name: Implement issue with Oz agent
         uses: warpdotdev/oz-agent-action@v1
@@ -39,7 +41,7 @@ jobs:
           prompt: |
             Use the Implementation skill in this repository to implement the GitHub issue that was just labeled ready to implement.
 
-            First read `.agents/skills/implementation.md`, then follow it exactly.
+            First read `.agents/skills/implementation/SKILL.md`, then follow it exactly.
 
             - Repository: ${{ github.repository }}
             - Issue number: #${{ github.event.issue.number }}
@@ -47,15 +49,19 @@ jobs:
             - Applied label: ${{ github.event.label.name }}
 
             Fetch the full issue and comments with the authenticated `gh` CLI,
-            inspect this checked-out codebase, implement the smallest cohesive
-            fix or feature, validate it, create a branch, push it, and open a
-            GitHub pull request. Post implementation progress comments to the
-            original issue as directed by the skill, using only an Oz run or Oz
-            session URL as the follow-along link. Do not use the GitHub Actions
-            workflow URL as the follow-along link. Do not post a final success
-            comment until the pull request has been opened. The final issue
-            comment must include the PR URL, and the PR body must link to this
-            issue using `Closes #${{ github.event.issue.number }}` when the
-            implementation fully resolves it.
+            find and read any linked or checked-in `PRODUCT.md` and `TECH.md`
+            specs before inspecting implementation areas, inspect this checked-out
+            codebase, implement the smallest cohesive fix or feature, validate it,
+            and if specs exist, read and follow
+            `.agents/skills/validate-changes-match-specs/SKILL.md` to confirm the
+            implementation matches those specs. Then create a branch, push it,
+            and open a GitHub pull request. Post implementation progress comments
+            to the original issue as directed by the skill, using only an Oz run
+            or Oz session URL as the follow-along link. Do not use the GitHub
+            Actions workflow URL as the follow-along link. Do not post a final
+            success comment until the pull request has been opened. The final
+            issue comment must include the PR URL, and the PR body must link to
+            this issue using `Closes #${{ github.event.issue.number }}` when
+            the implementation fully resolves it.
           warp_api_key: ${{ secrets.WARP_API_KEY }}
           profile: ${{ vars.WARP_AGENT_PROFILE || '' }}
