@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 interface ImageHistoryItem {
   image: string;
@@ -17,6 +17,8 @@ export default function Home() {
   const [submitMessage, setSubmitMessage] = useState<string>("");
   const [imageHistory, setImageHistory] = useState<ImageHistoryItem[]>([]);
   const [responseText, setResponseText] = useState<string | null>(null);
+
+  const replaceFileInputRef = useRef<HTMLInputElement>(null);
 
   // Helper function to convert data URL to File
   const dataURLtoFile = async (dataurl: string, filename: string): Promise<File> => {
@@ -45,6 +47,19 @@ export default function Home() {
       console.error('Error reverting to history image:', error);
       setSubmitMessage(`Error reverting to image #${index + 1}`);
     }
+  };
+
+  const handleClearImage = () => {
+    setSelectedImage(null);
+    setSelectedFile(null);
+    setInstructions("");
+    setSubmitMessage("");
+    setImageHistory([]);
+    setResponseText(null);
+  };
+
+  const handleReplaceImage = () => {
+    replaceFileInputRef.current?.click();
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -160,6 +175,15 @@ export default function Home() {
 
           {selectedImage && (
             <div className="space-y-6">
+              {/* Hidden file input for replacing the image */}
+              <input
+                ref={replaceFileInputRef}
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageUpload}
+              />
+
               <div className="flex justify-center">
                 <div className="relative">
                   <Image
@@ -171,6 +195,26 @@ export default function Home() {
                     style={{ width: 'auto', height: 'auto', maxWidth: '900px', maxHeight: '900px' }}
                   />
                 </div>
+              </div>
+
+              {/* Replace / Clear controls */}
+              <div className="flex justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleReplaceImage}
+                  disabled={isSubmitting}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Replace image
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearImage}
+                  disabled={isSubmitting}
+                  className="px-4 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-lg hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Clear image
+                </button>
               </div>
               
               <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
