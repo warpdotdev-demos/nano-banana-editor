@@ -47,6 +47,15 @@ export default function Home() {
     }
   };
 
+  const handleClear = () => {
+    setSelectedImage(null);
+    setSelectedFile(null);
+    setInstructions("");
+    setSubmitMessage("");
+    setImageHistory([]);
+    setResponseText(null);
+  };
+
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -170,6 +179,16 @@ export default function Home() {
                     className="rounded-lg shadow-lg object-cover"
                     style={{ width: 'auto', height: 'auto', maxWidth: '900px', maxHeight: '900px' }}
                   />
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    aria-label="Clear image and return to upload"
+                    className="absolute top-2 right-2 bg-white bg-opacity-90 hover:bg-opacity-100 text-gray-700 hover:text-red-600 rounded-full w-8 h-8 flex items-center justify-center shadow-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
               </div>
               
@@ -198,13 +217,21 @@ export default function Home() {
                   </div>
                 )}
                 
-                <div className="flex justify-center">
+                <div className="flex justify-center gap-3">
                   <button
                     type="submit"
                     disabled={isSubmitting || !instructions.trim()}
                     className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? 'Processing with Nano Banana...' : 'Process with AI'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    disabled={isSubmitting}
+                    className="px-6 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-red-600 hover:border-red-300 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Clear
                   </button>
                 </div>
               </form>
