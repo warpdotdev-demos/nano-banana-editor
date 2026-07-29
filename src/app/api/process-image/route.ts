@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
         responseText = part.text;
         console.log('Response text:', part.text);
       } else if (part.inlineData) {
-        generatedImageData = part.inlineData.data;
+        generatedImageData = part.inlineData.data ?? null;
         console.log('Generated image received (base64 length):', part.inlineData.data?.length || 0);
       }
     }

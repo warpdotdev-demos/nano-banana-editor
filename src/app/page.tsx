@@ -59,6 +59,24 @@ export default function Home() {
     }
   };
 
+  const handleReplaceImage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setSelectedImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      // Clear stale AI response text and instructions
+      setResponseText(null);
+      setInstructions("");
+      setSubmitMessage("");
+      // Reset input so the same file can be selected again
+      event.target.value = "";
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     
@@ -160,7 +178,7 @@ export default function Home() {
 
           {selectedImage && (
             <div className="space-y-6">
-              <div className="flex justify-center">
+              <div className="flex flex-col items-center gap-3">
                 <div className="relative">
                   <Image
                     src={selectedImage}
@@ -171,6 +189,15 @@ export default function Home() {
                     style={{ width: 'auto', height: 'auto', maxWidth: '900px', maxHeight: '900px' }}
                   />
                 </div>
+                <label className="cursor-pointer px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white hover:bg-gray-100 transition-colors font-medium">
+                  Replace image
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleReplaceImage}
+                  />
+                </label>
               </div>
               
               <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
