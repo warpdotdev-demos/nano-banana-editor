@@ -47,6 +47,16 @@ export default function Home() {
     }
   };
 
+  const handleDownload = () => {
+    if (!selectedImage) return;
+    const link = document.createElement('a');
+    link.href = selectedImage;
+    link.download = `nano-banana-image-${Date.now()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -173,6 +183,19 @@ export default function Home() {
                 </div>
               </div>
               
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={handleDownload}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download
+                </button>
+              </div>
+
               <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
                 <div>
                   <label htmlFor="instructions" className="block text-sm font-medium text-gray-700 mb-2">
