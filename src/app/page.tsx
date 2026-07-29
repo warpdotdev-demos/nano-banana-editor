@@ -62,6 +62,8 @@ export default function Home() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     
+    if (isSubmitting) return;
+
     if (!selectedFile || !instructions.trim()) {
       setSubmitMessage("Please provide both an image and instructions.");
       return;
@@ -198,7 +200,7 @@ export default function Home() {
                   </div>
                 )}
                 
-                <div className="flex justify-center">
+                <div className="flex flex-col items-center gap-1">
                   <button
                     type="submit"
                     disabled={isSubmitting || !instructions.trim()}
@@ -206,6 +208,11 @@ export default function Home() {
                   >
                     {isSubmitting ? 'Processing with Nano Banana...' : 'Process with AI'}
                   </button>
+                  {!isSubmitting && (
+                    <p className="text-xs text-gray-500">
+                      {instructions.trim() ? '⏎ Press Enter to submit' : 'Type instructions above to enable'}
+                    </p>
+                  )}
                 </div>
               </form>
               
