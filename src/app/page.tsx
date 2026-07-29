@@ -224,7 +224,15 @@ export default function Home() {
       {imageHistory.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-4">
           <div className="max-w-6xl mx-auto">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Image History</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-gray-700">Image History</h3>
+              <button
+                onClick={() => setImageHistory([])}
+                className="text-xs text-gray-500 hover:text-red-600 border border-gray-300 hover:border-red-400 rounded px-2 py-1 transition-colors"
+              >
+                Clear history
+              </button>
+            </div>
             <div className="flex space-x-3 overflow-x-auto pb-2">
               {imageHistory.map((item, index) => (
                 <div key={item.timestamp} className="flex-shrink-0">
