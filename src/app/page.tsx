@@ -170,6 +170,16 @@ export default function Home() {
                     className="rounded-lg shadow-lg object-cover"
                     style={{ width: 'auto', height: 'auto', maxWidth: '900px', maxHeight: '900px' }}
                   />
+                  {isSubmitting && (
+                    <div
+                      className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-lg bg-black/50"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      <div className="w-10 h-10 border-4 border-white/40 border-t-white rounded-full animate-spin" />
+                      <span className="text-white text-sm font-medium">Processing…</span>
+                    </div>
+                  )}
                 </div>
               </div>
               
