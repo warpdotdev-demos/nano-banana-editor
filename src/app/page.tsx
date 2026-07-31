@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 interface ImageHistoryItem {
   image: string;
@@ -17,6 +17,7 @@ export default function Home() {
   const [submitMessage, setSubmitMessage] = useState<string>("");
   const [imageHistory, setImageHistory] = useState<ImageHistoryItem[]>([]);
   const [responseText, setResponseText] = useState<string | null>(null);
+  const replaceInputRef = useRef<HTMLInputElement>(null);
 
   // Helper function to convert data URL to File
   const dataURLtoFile = async (dataurl: string, filename: string): Promise<File> => {
@@ -57,6 +58,39 @@ export default function Home() {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  // Reset every piece of state tied to the current image so the editor is
+  // ready for a fresh session.
+  const resetEditor = () => {
+    setSelectedImage(null);
+    setSelectedFile(null);
+    setInstructions("");
+    setSubmitMessage("");
+    setResponseText(null);
+    setImageHistory([]);
+  };
+
+  const handleReplaceClick = () => {
+    if (replaceInputRef.current) {
+      // Clear the value so re-selecting the same file still fires onChange
+      replaceInputRef.current.value = "";
+      replaceInputRef.current.click();
+    }
+  };
+
+  // Replacing the image starts a new lineage: drop the status text, AI response,
+  // and history that belonged to the image being discarded. Cancelling the file
+  // picker is a no-op.
+  const handleReplaceImage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files?.[0]) {
+      return;
+    }
+
+    setSubmitMessage("");
+    setResponseText(null);
+    setImageHistory([]);
+    handleImageUpload(event);
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -172,7 +206,35 @@ export default function Home() {
                   />
                 </div>
               </div>
-              
+
+              <div className="flex flex-wrap justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleReplaceClick}
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Replace image
+                </button>
+                <button
+                  type="button"
+                  onClick={resetEditor}
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-white text-red-700 border border-red-300 rounded-lg hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Clear image
+                </button>
+                <input
+                  ref={replaceInputRef}
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  aria-hidden="true"
+                  tabIndex={-1}
+                  onChange={handleReplaceImage}
+                />
+              </div>
+
               <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
                 <div>
                   <label htmlFor="instructions" className="block text-sm font-medium text-gray-700 mb-2">
