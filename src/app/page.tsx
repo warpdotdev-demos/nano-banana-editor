@@ -69,9 +69,6 @@ export default function Home() {
     setSubmitMessage("");
     setResponseText(null);
     setImageHistory([]);
-    if (replaceInputRef.current) {
-      replaceInputRef.current.value = "";
-    }
   };
 
   const handleReplaceClick = () => {
@@ -80,6 +77,20 @@ export default function Home() {
       replaceInputRef.current.value = "";
       replaceInputRef.current.click();
     }
+  };
+
+  // Replacing the image starts a new lineage: drop the status text, AI response,
+  // and history that belonged to the image being discarded. Cancelling the file
+  // picker is a no-op.
+  const handleReplaceImage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files?.[0]) {
+      return;
+    }
+
+    setSubmitMessage("");
+    setResponseText(null);
+    setImageHistory([]);
+    handleImageUpload(event);
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -220,7 +231,7 @@ export default function Home() {
                   accept="image/*"
                   aria-hidden="true"
                   tabIndex={-1}
-                  onChange={handleImageUpload}
+                  onChange={handleReplaceImage}
                 />
               </div>
 
