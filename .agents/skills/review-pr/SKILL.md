@@ -26,6 +26,7 @@ Prioritize: correctness, security, error handling, regressions, material perform
 - Inline comments only on paths/lines in this PR's annotated diff; otherwise top-level `body`
 - Style/nits only with a concrete suggestion block
 - New tests only for distinct paths/edge cases not already covered
+- Before suggesting a confirmation/undo guard that would reverse an intentional destructive action (e.g. a reset/clear control), check the PR description and any linked issue for explicit acceptance criteria first; if the behavior is already specified there, don't present the guard as an actionable fix — omit it or note it as a separate product question instead
 - V0/initial PRs: timeouts/retries/lifecycle as optional unless correctness/security/data-loss risk
 - Docs/specs-only: clarity, completeness, contradictions, missing acceptance criteria
 - UI/interactive + `verify-behavior` present: optional `verify` on PR head; fold failures as important/critical; brief success note in `body` only if it changes the review
