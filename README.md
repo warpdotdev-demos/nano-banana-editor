@@ -147,16 +147,22 @@ This project includes debugging capabilities using the Puppeteer MCP server:
 
 ### Vercel (Recommended)
 
-```bash
-npm run build
-vercel --prod
-```
+1. **Import the project** on [vercel.com/new](https://vercel.com/new) (or run `vercel link` locally), pointing it at this repository.
+2. **Set the environment variable** for each environment you plan to use (Production, Preview, and Development): add `GOOGLE_GENERATIVE_AI_API_KEY` under Project Settings → Environment Variables. See [`.env.example`](.env.example) for the expected shape.
+3. **Node version**: the project pins `engines.node` to `>=20` in `package.json`; Vercel will use a matching Node major automatically.
+4. **Function timeout**: `src/app/api/process-image/route.ts` sets `export const maxDuration = 300` (seconds) since Gemini image generation can take longer than the platform default. 300s is the current maximum on the Hobby plan and is also valid on Pro/Enterprise.
+5. **Build**: Vercel runs `npm run build`, which invokes `next build --turbopack` (the same command used for local production builds).
+6. **Deploy**: push to your linked Git branch, or run:
+   ```bash
+   npm run build
+   vercel --prod
+   ```
 
-Don't forget to add your `GOOGLE_GENERATIVE_AI_API_KEY` in the Vercel environment variables!
+**Upload size limit**: Vercel caps serverless function request bodies at 4.5 MB. The UI enforces a 4MB client-side limit (see `MAX_UPLOAD_BYTES` in `src/app/page.tsx`) to stay safely under that platform cap, including for images regenerated during iterative editing.
 
 ### Other Platforms
 
-The app is a standard Next.js application and can be deployed to any platform that supports Node.js.
+The app is a standard Next.js application and can be deployed to any platform that supports Node.js 20+.
 
 ## 🤖 Cloud Factory Automation
 
