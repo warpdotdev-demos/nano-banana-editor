@@ -9,6 +9,13 @@ interface ImageHistoryItem {
   timestamp: number;
 }
 
+// Vercel Functions reject request bodies over 4.5 MB before the handler
+// even runs. Keep a small safety margin below that hard platform limit to
+// account for multipart form-data overhead (boundaries + the instructions
+// field).
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024; // 4MB
+const MAX_UPLOAD_LABEL = "4MB";
+
 export default function Home() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -50,6 +57,14 @@ export default function Home() {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if (file.size > MAX_UPLOAD_BYTES) {
+        setSubmitMessage(
+          `Error: "${file.name}" is ${(file.size / (1024 * 1024)).toFixed(1)}MB, which exceeds the ${MAX_UPLOAD_LABEL} upload limit. Please choose a smaller image.`
+        );
+        event.target.value = "";
+        return;
+      }
+      setSubmitMessage("");
       setSelectedFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -64,6 +79,16 @@ export default function Home() {
     
     if (!selectedFile || !instructions.trim()) {
       setSubmitMessage("Please provide both an image and instructions.");
+      return;
+    }
+
+    // Guard the regenerated-image path too: each generated image is fed
+    // back in as the next upload, so iterative edits could otherwise
+    // silently grow past the platform limit.
+    if (selectedFile.size > MAX_UPLOAD_BYTES) {
+      setSubmitMessage(
+        `Error: The current image is ${(selectedFile.size / (1024 * 1024)).toFixed(1)}MB, which exceeds the ${MAX_UPLOAD_LABEL} upload limit. Please start over with a smaller image.`
+      );
       return;
     }
 
@@ -136,6 +161,15 @@ export default function Home() {
         </div>
 
         <div className="space-y-8">
+          {submitMessage && (
+            <div className={`p-3 rounded-lg text-sm max-w-2xl mx-auto ${submitMessage.startsWith('Success') 
+              ? 'bg-green-100 text-green-700 border border-green-200' 
+              : 'bg-red-100 text-red-700 border border-red-200'
+            }`}>
+              {submitMessage}
+            </div>
+          )}
+
           {!selectedImage && (
             <div className="flex items-center justify-center">
               <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
@@ -146,7 +180,7 @@ export default function Home() {
                   <p className="mb-2 text-sm text-gray-500">
                     <span className="font-semibold">Click to upload</span>
                   </p>
-                  <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                  <p className="text-xs text-gray-500">PNG, JPG, GIF up to {MAX_UPLOAD_LABEL}</p>
                 </div>
                 <input 
                   type="file" 
@@ -188,15 +222,6 @@ export default function Home() {
                     disabled={isSubmitting}
                   />
                 </div>
-                
-                {submitMessage && (
-                  <div className={`p-3 rounded-lg text-sm ${submitMessage.startsWith('Success') 
-                    ? 'bg-green-100 text-green-700 border border-green-200' 
-                    : 'bg-red-100 text-red-700 border border-red-200'
-                  }`}>
-                    {submitMessage}
-                  </div>
-                )}
                 
                 <div className="flex justify-center">
                   <button

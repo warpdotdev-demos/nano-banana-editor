@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # Oz / Warp API key (used locally to provision the WARP_API_KEY GitHub secret)
 .oz-api-key

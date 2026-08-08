@@ -5,6 +5,12 @@ const genAI = new GoogleGenAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || ''
 });
 
+// Gemini image generation can take longer than Vercel's default function
+// timeout. 300s is the current maximum duration on the Hobby plan and is
+// also valid on Pro/Enterprise, so it works regardless of plan.
+export const maxDuration = 300;
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -64,7 +70,7 @@ export async function POST(request: NextRequest) {
         responseText = part.text;
         console.log('Response text:', part.text);
       } else if (part.inlineData) {
-        generatedImageData = part.inlineData.data;
+        generatedImageData = part.inlineData.data ?? null;
         console.log('Generated image received (base64 length):', part.inlineData.data?.length || 0);
       }
     }
