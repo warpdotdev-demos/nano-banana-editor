@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-import { GeminiSafetyBlockError, mapGeminiError } from '@/lib/gemini-errors';
+import { GeminiMissingApiKeyError, detectSafetyBlock, mapGeminiError } from '@/lib/gemini-errors';
 
 const genAI = new GoogleGenAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || ''
@@ -34,7 +34,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-      return NextResponse.json({ error: 'Google API key not configured' }, { status: 500 });
+      // Thrown (rather than returned directly) so it goes through the same
+      // mapGeminiError() mapping - and gets the same user-facing wording - as
+      // an invalid key rejected by the Gemini API itself.
+      throw new GeminiMissingApiKeyError();
     }
 
     // Get image bytes and convert to base64
@@ -88,11 +91,9 @@ export async function POST(request: NextRequest) {
     // finishReason on the (empty) candidate instead. Surface that the same
     // way as any other failure by routing it through the shared error
     // mapping, rather than reporting a false "success" with no image.
-    const blockReason = response.promptFeedback?.blockReason;
-    const finishReason = response.candidates?.[0]?.finishReason;
-    const SAFETY_FINISH_REASONS = new Set(['SAFETY', 'PROHIBITED_CONTENT', 'BLOCKLIST', 'SPII']);
-    if (!generatedImageData && (blockReason || (finishReason && SAFETY_FINISH_REASONS.has(finishReason)))) {
-      throw new GeminiSafetyBlockError(String(blockReason ?? finishReason));
+    const safetyBlock = detectSafetyBlock(response, Boolean(generatedImageData));
+    if (safetyBlock) {
+      throw safetyBlock;
     }
 
     // Return the processed result

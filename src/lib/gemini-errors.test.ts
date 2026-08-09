@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { GeminiSafetyBlockError, mapGeminiError } from './gemini-errors';
+import { GeminiMissingApiKeyError, GeminiSafetyBlockError, detectSafetyBlock, mapGeminiError } from './gemini-errors';
 
 /** Mimics `@google/genai`'s `ApiError`: an `Error` with a numeric `status`. */
 function apiError(status: number, message: string): Error & { status: number } {
@@ -53,15 +53,18 @@ const QUOTA_EXCEEDED_MESSAGE = JSON.stringify({
   },
 });
 
-test('maps the verbatim quota-exceeded payload to a friendly daily-quota message', () => {
+test('maps the verbatim quota-exceeded payload to a friendly daily-quota message without a misleading retry delay', () => {
   const result = mapGeminiError(apiError(429, QUOTA_EXCEEDED_MESSAGE));
 
   assert.equal(result.status, 429);
   assert.equal(result.kind, 'daily_quota_exceeded');
-  assert.equal(result.retryDelaySeconds, 49);
+  // The fixture's RetryInfo.retryDelay (49s) is a short backoff hint that
+  // does not apply to a *daily* quota - surfacing "try again in 49 seconds"
+  // here would contradict "quota exhausted for today", so it must not appear.
+  assert.equal(result.retryDelaySeconds, undefined);
   assert.doesNotMatch(result.message, /RESOURCE_EXHAUSTED|generativelanguage\.googleapis\.com|@type/);
+  assert.doesNotMatch(result.message, /49 seconds|retryDelay|suggested waiting/i);
   assert.match(result.message, /quota for today/i);
-  assert.match(result.message, /49 seconds/);
 });
 
 test('maps a per-minute-only rate limit to a distinct "slow down" message', () => {
@@ -90,6 +93,30 @@ test('maps a per-minute-only rate limit to a distinct "slow down" message', () =
   assert.equal(result.kind, 'rate_limited');
   assert.equal(result.retryDelaySeconds, 5);
   assert.match(result.message, /too fast/i);
+});
+
+test('rounds a decimal retry delay up to the nearest whole second', () => {
+  // 4.40179684s is a real observed RetryInfo.retryDelay value.
+  const message = JSON.stringify({
+    error: {
+      code: 429,
+      message: 'Rate limit exceeded',
+      status: 'RESOURCE_EXHAUSTED',
+      details: [
+        {
+          '@type': 'type.googleapis.com/google.rpc.QuotaFailure',
+          violations: [{ quotaId: 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier' }],
+        },
+        { '@type': 'type.googleapis.com/google.rpc.RetryInfo', retryDelay: '4.40179684s' },
+      ],
+    },
+  });
+
+  const result = mapGeminiError(apiError(429, message));
+
+  assert.equal(result.kind, 'rate_limited');
+  assert.equal(result.retryDelaySeconds, 5);
+  assert.match(result.message, /5 seconds/);
 });
 
 test('maps a 429 with no quota violation details to a generic quota-exceeded message', () => {
@@ -149,6 +176,42 @@ test('maps a safety block to a 400 with actionable copy', () => {
   assert.equal(result.status, 400);
   assert.equal(result.kind, 'safety_blocked');
   assert.match(result.message, /safety filters/i);
+});
+
+test('maps a missing API key configuration error the same way as an invalid key, without leaking env var names', () => {
+  const result = mapGeminiError(new GeminiMissingApiKeyError());
+
+  assert.equal(result.status, 500);
+  assert.equal(result.kind, 'invalid_api_key');
+  assert.match(result.message, /contact the site owner/i);
+  assert.doesNotMatch(result.message, /GOOGLE_GENERATIVE_AI_API_KEY/);
+});
+
+test('detectSafetyBlock treats an IMAGE_SAFETY finish reason with no image as a safety block', () => {
+  // Reproduces the route.ts response shape for a generated-image safety
+  // block: a 200 response with a candidate but no inlineData part, so
+  // generatedImageData is null and finishReason is IMAGE_SAFETY (no
+  // promptFeedback.blockReason is set for this case).
+  const response = { candidates: [{ finishReason: 'IMAGE_SAFETY' }] };
+
+  const block = detectSafetyBlock(response, false);
+  assert.ok(block instanceof GeminiSafetyBlockError);
+
+  const mapped = mapGeminiError(block);
+  assert.equal(mapped.status, 400);
+  assert.equal(mapped.kind, 'safety_blocked');
+});
+
+test('detectSafetyBlock ignores a blocked-sounding finish reason when an image was actually generated', () => {
+  const response = { candidates: [{ finishReason: 'IMAGE_SAFETY' }] };
+
+  assert.equal(detectSafetyBlock(response, true), null);
+});
+
+test('detectSafetyBlock returns null for an ordinary STOP finish reason', () => {
+  const response = { candidates: [{ finishReason: 'STOP' }] };
+
+  assert.equal(detectSafetyBlock(response, false), null);
 });
 
 test('maps a 503 UNAVAILABLE error to an overloaded message', () => {
