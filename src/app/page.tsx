@@ -186,17 +186,17 @@ export default function Home() {
     try {
       // Truncate history to the selected point (pop everything after this index)
       setImageHistory(prev => prev.slice(0, index));
-      
+
       // Set the selected history image as current
       setSelectedImage(historyItem.image);
       const newFile = await dataURLtoFile(historyItem.image, `reverted_${Date.now()}.png`);
       setSelectedFile(newFile);
-      
+
       // Clear any messages and set instructions hint
       setStatusMessage({ kind: "info", text: `Reverted to image #${index + 1} - "${historyItem.prompt}"` });
       setInstructions("");
       setResponseText(null);
-      
+
     } catch (error) {
       console.error('Error reverting to history image:', error);
       setStatusMessage({ kind: "error", text: `Error reverting to image #${index + 1}` });
@@ -228,7 +228,7 @@ export default function Home() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    
+
     if (!selectedFile || !instructions.trim()) {
       setStatusMessage({ kind: "error", text: "Please provide both an image and instructions." });
       return;
@@ -266,7 +266,7 @@ export default function Home() {
           text: `Nano Banana processed your image (${result.originalImageSize} bytes).`,
         });
         setResponseText(result.responseText);
-        
+
         if (result.generatedImage) {
           // Add current image to history before replacing it
           if (selectedImage) {
@@ -277,10 +277,10 @@ export default function Home() {
             };
             setImageHistory(prev => [...prev, historyItem]);
           }
-          
+
           // Replace current image with generated result
           setSelectedImage(result.generatedImage);
-          
+
           // Convert the generated image back to a File for future processing
           try {
             const newFile = await dataURLtoFile(result.generatedImage, `edited_${Date.now()}.png`);
@@ -299,7 +299,7 @@ export default function Home() {
           } catch (error) {
             console.error('Error converting generated image to file:', error);
           }
-          
+
           // Clear instructions for next iteration
           setInstructions("");
         }
@@ -350,9 +350,9 @@ export default function Home() {
                       </p>
                       <p className="text-xs text-slate-500">PNG, JPG, GIF up to {MAX_IMAGE_LABEL}</p>
                     </div>
-                    <input 
-                      type="file" 
-                      className="hidden" 
+                    <input
+                      type="file"
+                      className="hidden"
                       accept="image/*"
                       onChange={handleImageUpload}
                     />
@@ -382,7 +382,7 @@ export default function Home() {
                     />
                   </div>
                 </div>
-                
+
                 <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
                   <div>
                     <label htmlFor="instructions" className="block text-sm font-medium text-slate-700 mb-2">
@@ -398,14 +398,14 @@ export default function Home() {
                       disabled={isSubmitting}
                     />
                   </div>
-                  
+
                   {statusMessage && (
                     <div className={messageClasses} role="status">
                       <span aria-hidden="true">{MESSAGE_ICONS[statusMessage.kind]}</span>
                       <span>{statusMessage.text}</span>
                     </div>
                   )}
-                  
+
                   <div className="flex justify-center">
                     <button
                       type="submit"
@@ -416,7 +416,7 @@ export default function Home() {
                     </button>
                   </div>
                 </form>
-                
+
                 {responseText && (
                   <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mt-4 max-w-2xl mx-auto">
                     <h3 className="font-medium text-blue-900 mb-2">Latest AI Response:</h3>
@@ -437,7 +437,7 @@ export default function Home() {
             <div className="flex space-x-3 overflow-x-auto pb-2">
               {imageHistory.map((item, index) => (
                 <div key={item.timestamp} className="flex-shrink-0">
-                  <div 
+                  <div
                     className="w-20 h-20 relative group cursor-pointer hover:ring-2 hover:ring-violet-500 rounded-lg transition-all"
                     onClick={() => revertToHistoryImage(item, index)}
                     title={`Click to revert to: "${item.prompt}"`}
